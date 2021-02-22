@@ -36,17 +36,74 @@ const calculatePercentage = (words, numberOfWordsFound) => {
 const partlyMatchedWords = (words, dictionary) => {
   let hashOfWords = {};
   words.forEach(parentWord => {
+  let subhash = {}
     dictionary.forEach(childWord => {
       let regexChildWord = new RegExp(escapeRegExp(childWord));
       if (regexChildWord.test(parentWord)) {
-        hashOfWords[regexChildWord] = parentWord
+        subhash[childWord] = wordPercentageMatch(childWord, parentWord)
       }
+
       return hashOfWords
     });
+    hashOfWords[parentWord] = subhash
   });
   console.log(hashOfWords);
+}
+
+const wordPercentageMatch = (childWord, parentWord) => {
+  return ((childWord.length/parentWord.length)*100 + '%')
 }
 
 function escapeRegExp(str) {
   return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
+
+
+let array = [
+  { so: 'yesooo' },
+  { yes: 'yesooo' },
+  { '': 'elaborated' },
+  { s: 'yesooo' },
+  { band: 'abandoning' },
+  { and: 'abandoning' },
+  { in: 'abandoning' },
+  { do: 'abandoning' },
+  { on: 'abandoning' },
+  { abandon: 'abandoning' },
+  { don: 'abandoning' },
+  { ab: 'elaborated' },
+  { elaborate: 'elaborated' },
+  { ate: 'elaborated' },
+  { labor: 'elaborated' },
+  { or: 'elaborated' },
+  { at: 'elaborated' },
+  { rate: 'elaborated' },
+  { lab: 'elaborated' },
+  { labo: 'elaborated' },
+  { orate: 'elaborated' }
+]
+
+let object = {
+  so: 'yesooo',
+  yes: 'yesooo',
+  '': 'elaborated',
+  s: 'yesooo',
+  band: 'abandoning',
+  and: 'abandoning',
+  in: 'abandoning',
+  do: 'abandoning',
+  on: 'abandoning',
+  abandon: 'abandoning',
+  don: 'abandoning',
+  ab: 'elaborated',
+  elaborate: 'elaborated',
+  ate: 'elaborated',
+  labor: 'elaborated',
+  or: 'elaborated',
+  at: 'elaborated',
+  rate: 'elaborated',
+  lab: 'elaborated',
+  labo: 'elaborated',
+  orate: 'elaborated'
+}
+
