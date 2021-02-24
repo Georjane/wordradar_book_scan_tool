@@ -20,6 +20,8 @@ fs.createReadStream('words.csv')
     console.log('>>>>>>>>>>>>>> Percentage Match is ' + percentageMatch + '%');
     const hashOfWords = partlyMatchedWords(wordsNotFound, dictionary)
 		let results = wordsWithHighestPercentMatch(hashOfWords)
+		// let results = findWordId(hashOfWords)
+
     console.log(results);
 		// res.render('resultspage', { data: results, percent: percentageMatch });
   });
@@ -78,48 +80,49 @@ fs.createReadStream('words.csv')
       let max = findMaxPercentageMatch(hashOfWords[key])
       let maxKey = getKeyByValue(hashOfWords[key], max)
       subdata[maxKey] = max;
-      subdata['root_id'] = findWordId(maxKey);
-      subdata['meaning'] = 'meaning';
-      subdata['description'] = 'description';
-      filteredUnfoundWords[key] = subdata
+      findWordId(subdata, filteredUnfoundWords, maxKey, key);
     }
     return filteredUnfoundWords;
   }
+
+  const populateRootData = (subdata, filteredUnfoundWords, key, word_ids) => {
+    subdata['root_id'] = word_ids;
+    subdata['meaning'] = 'meaning';
+    subdata['description'] = 'description';
+    filteredUnfoundWords[key] = subdata
+  }
+
+ 
   
-  const findWordId = (maxKey) => {
-    let keyy = 12;
+  const findWordId = (subdata, filteredUnfoundWords, maxKey, key) => {
     let word_ids = [];
     fs.createReadStream('words.csv')
       .pipe(csv())
       .on('data', function (row) {
-        // if (row.word == maxKey) {
-        //   word_ids.push(row.word_id)
-        // }
-        keyy = 20;
-      })
-      .on('end', function () {
-        // word_ids.forEach(word_id => {
-        //   findRootId(word_id)           
-        // });
-        return keyy
-      });
-      return keyy;
-  }
-  
-
-  const findRootId = (word_id) => {
-    let root_id;
-    fs.createReadStream('word_roots_map.csv')
-      .pipe(csv())
-      .on('data', function (row) {
-        if (row.word_id == word_id) {
-        console.log(word_id);
-          root_id = row.root_id
+        if (row.word == maxKey) {
+          word_ids.push(row.word_id)
         }
       })
       .on('end', function () {
-        console.log(root_id); 
+        findRootId(word_ids) 
       });
+  }
+  
+  const findRootId = (word_ids) => {
+    let root_ids = [];
+    fs.createReadStream('word_roots_map.csv')
+      .pipe(csv())
+      .on('data', function (row) {
+        word_ids.forEach(word_id => {
+          if (row.word_id == word_id) {
+            root_ids.push(row.root_id)
+          }
+        });        
+      })
+      .on('end', function () { 
+        console.log(root_ids); 
+      });
+      console.log(word_ids); 
   }
   
   function getKeyByValue(object, value) {
