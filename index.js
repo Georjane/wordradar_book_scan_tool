@@ -122,28 +122,47 @@ fs.createReadStream('words.csv')
   const findRootId = (filteredUnfoundWords) => {
 
     for (const word in filteredUnfoundWords) {
-      let root_id = [];
+      let root_ids = [];
       fs.createReadStream('word_roots_map.csv')
         .pipe(csv())
         .on('data', function (row) {
           if (row.word_id == filteredUnfoundWords[word]['word_id']) {
-            root_id.push(row.root_id)
+            root_ids.push(row.root_id)
           }
         })
         .on('end', function () {
-            let final = finalRootIds(root_id, filteredUnfoundWords)
-            console.log(final);
+          finalRootIds(root_ids, filteredUnfoundWords)
+          root_ids.forEach(root_id => {            
+            findMeaningAndDescription(root_id, filteredUnfoundWords)
+          });
+          // results()
         });
     }
   }
 
-  const finalRootIds = (root_id, filteredUnfoundWords) => {
+  const findMeaningAndDescription = (root_id, filteredUnfoundWords) => {
+    let arrRootIdMeaningDesc = []
+    fs.createReadStream('roots.csv')
+        .pipe(csv())
+        .on('data', function (row) {
+          if (row.root_id == root_id) {
+            arrRootIdMeaningDesc.push(row.root_id, row.description, row.Meaning)
+          }
+        })
+        .on('end', function () {
+            console.log(filteredUnfoundWords);
+          console.log(arrRootIdMeaningDesc);
+        });  
+      }
+
+  const finalRootIds = (root_ids, filteredUnfoundWords) => {
     let counter = 0;
             for (const word in filteredUnfoundWords) {
-              filteredUnfoundWords[word]['root_id'] = root_id[counter]
+              filteredUnfoundWords[word]['root_id'] = root_ids[counter]
+              // filteredUnfoundWords[word]['meaning'] = meanings[counter]
               counter += 1
             }
-            return filteredUnfoundWords;
+            // console.log(filteredUnfoundWords); 
   }
 
   function getKeyByValue(object, value) {
