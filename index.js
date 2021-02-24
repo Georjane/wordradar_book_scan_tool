@@ -1,10 +1,14 @@
 const fs = require('fs');
 const csv = require('csv-parser');
+const { count } = require('console');
 
-// const dictionary = {};
-// wordProperties = {};
-// rootProperties = {};
+wordAndId = {}
+// abandon: {
+  // word: abandon,
+  // word_id: 3444
+// }
 const dictionary = [];
+const arrayOfWordIds = [];
 const words = ['genuine', 'yesooo', 'one', 'elaborate', 'yes', 'abandoning', 'elaborated'];
 const wordsNotFound = [];
 const wordsNotFoundAndId = {};
@@ -12,14 +16,34 @@ const wordsNotFoundAndId = {};
 fs.createReadStream('words.csv')
   .pipe(csv())
   .on('data', function (row) {
-    dictionary.push(row.word);
+    let eachWord = {};
+    eachWord['word'] = row.word;
+    eachWord['word_id'] = row.word_id;
+    wordAndId[row.word] = eachWord
+    // dictionary.push(row.word);
   })
   .on('end', function () {
+    for (const word in wordAndId) {
+      dictionary.push(wordAndId[word]['word'])
+      arrayOfWordIds.push(wordAndId[word]['word_id'])
+    }
+
     const numberOfWordsFound = containsWord(words, dictionary);
     const percentageMatch = calculatePercentage(words, numberOfWordsFound)
     // console.log('>>>>>>>>>>>>>> Percentage Match is ' + percentageMatch + '%');
     const hashOfWords = partlyMatchedWords(wordsNotFound, dictionary)
-		let results = wordsWithHighestPercentMatch(hashOfWords)
+    // abandoning = {
+      // abandon: 70%
+    // }
+
+		let results = wordsWithHighestPercentMatch(hashOfWords, arrayOfWordIds)
+    // abandoning = {
+      // abandon: {
+            // percent: 70,
+            // word_id: 344,
+            // root_id: 8877
+      // }
+    // }
 		// let results = findWordId(hashOfWords)
 
     // console.log(results);
@@ -73,73 +97,55 @@ fs.createReadStream('words.csv')
     return Math.max(...percentValuesArray);
   }
   
-  const wordsWithHighestPercentMatch = (hashOfWords) => {
+  const wordsWithHighestPercentMatch = (hashOfWords, arrayOfWordIds) => {
     let filteredUnfoundWords = {}
+    // console.log(arrayOfWordIds);
     for (const key in hashOfWords) {
       let subdata = {}
       let max = findMaxPercentageMatch(hashOfWords[key])
       let maxKey = getKeyByValue(hashOfWords[key], max)
       subdata[maxKey] = max;
-      findWordId(subdata, filteredUnfoundWords, maxKey, key);
+      subdata['word_id'] = findWordId(maxKey)
+      filteredUnfoundWords[key] = subdata
     }
-    return filteredUnfoundWords;
+    findRootId(filteredUnfoundWords)
   }
 
-  const populateRootData = (subdata, filteredUnfoundWords, key, word_ids) => {
-    subdata['root_id'] = word_ids;
-    subdata['meaning'] = 'meaning';
-    subdata['description'] = 'description';
-    filteredUnfoundWords[key] = subdata
+   const findWordId = (maxKey) => {
+    for (const word in wordAndId) {
+      if (maxKey == wordAndId[word]['word']) {
+        return wordAndId[word]['word_id']
+      }
+    }
   }
 
-   
-  const findWordId = (subdata, filteredUnfoundWords, maxKey, key) => {
-    console.log(subdata);
-    // console.log(filteredUnfoundWords); we can define filtered words at the end, {}
-    // and say filteredUnfoundWords[key] = subdata
-    // console.log(key);
-    let word_ids = [];
-    fs.createReadStream('words.csv')
-      .pipe(csv())
-      .on('data', function (row) {
-        if (row.word == maxKey) {
-          subdata['word_id'] = row.word_id;
-          word_ids.push(row.word_id)
-        }
-      })
-      .on('end', function () {
-        findRootId(word_ids, subdata) 
-      });
-  }
-  
-  const findRootId = (word_ids, subdata) => {
-    let root_ids = [];
-    fs.createReadStream('word_roots_map.csv')
-      .pipe(csv())
-      .on('data', function (row) {
-        word_ids.forEach(word_id => {
-          if (row.word_id == word_id) {
-            // subdata['root_id'] = row.root_id;
-            root_ids.push(row.root_id)
-            // console.log(subdata);
+  const findRootId = (filteredUnfoundWords) => {
 
+    for (const word in filteredUnfoundWords) {
+      let root_id = [];
+      fs.createReadStream('word_roots_map.csv')
+        .pipe(csv())
+        .on('data', function (row) {
+          if (row.word_id == filteredUnfoundWords[word]['word_id']) {
+            root_id.push(row.root_id)
           }
-        });        
-      })
-      .on('end', function () { 
-        displayInfo(subdata, root_ids)
-        // console.log(root_ids); 
-      });
-      // console.log(word_ids); 
+        })
+        .on('end', function () {
+            let final = finalRootIds(root_id, filteredUnfoundWords)
+            console.log(final);
+        });
+    }
   }
 
-  const displayInfo = (subdata, root_ids) => {
-    root_ids.forEach(root_id => {
-      // console.log(subdata);
-    });
-    console.log(subdata);
+  const finalRootIds = (root_id, filteredUnfoundWords) => {
+    let counter = 0;
+            for (const word in filteredUnfoundWords) {
+              filteredUnfoundWords[word]['root_id'] = root_id[counter]
+              counter += 1
+            }
+            return filteredUnfoundWords;
   }
-  
+
   function getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
   }
