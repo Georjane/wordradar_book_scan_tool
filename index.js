@@ -17,12 +17,12 @@ fs.createReadStream('words.csv')
   .on('end', function () {
     const numberOfWordsFound = containsWord(words, dictionary);
     const percentageMatch = calculatePercentage(words, numberOfWordsFound)
-    console.log('>>>>>>>>>>>>>> Percentage Match is ' + percentageMatch + '%');
+    // console.log('>>>>>>>>>>>>>> Percentage Match is ' + percentageMatch + '%');
     const hashOfWords = partlyMatchedWords(wordsNotFound, dictionary)
 		let results = wordsWithHighestPercentMatch(hashOfWords)
 		// let results = findWordId(hashOfWords)
 
-    console.log(results);
+    // console.log(results);
 		// res.render('resultspage', { data: results, percent: percentageMatch });
   });
 
@@ -92,37 +92,52 @@ fs.createReadStream('words.csv')
     filteredUnfoundWords[key] = subdata
   }
 
- 
-  
+   
   const findWordId = (subdata, filteredUnfoundWords, maxKey, key) => {
+    console.log(subdata);
+    // console.log(filteredUnfoundWords); we can define filtered words at the end, {}
+    // and say filteredUnfoundWords[key] = subdata
+    // console.log(key);
     let word_ids = [];
     fs.createReadStream('words.csv')
       .pipe(csv())
       .on('data', function (row) {
         if (row.word == maxKey) {
+          subdata['word_id'] = row.word_id;
           word_ids.push(row.word_id)
         }
       })
       .on('end', function () {
-        findRootId(word_ids) 
+        findRootId(word_ids, subdata) 
       });
   }
   
-  const findRootId = (word_ids) => {
+  const findRootId = (word_ids, subdata) => {
     let root_ids = [];
     fs.createReadStream('word_roots_map.csv')
       .pipe(csv())
       .on('data', function (row) {
         word_ids.forEach(word_id => {
           if (row.word_id == word_id) {
+            // subdata['root_id'] = row.root_id;
             root_ids.push(row.root_id)
+            // console.log(subdata);
+
           }
         });        
       })
       .on('end', function () { 
-        console.log(root_ids); 
+        displayInfo(subdata, root_ids)
+        // console.log(root_ids); 
       });
-      console.log(word_ids); 
+      // console.log(word_ids); 
+  }
+
+  const displayInfo = (subdata, root_ids) => {
+    root_ids.forEach(root_id => {
+      // console.log(subdata);
+    });
+    console.log(subdata);
   }
   
   function getKeyByValue(object, value) {
