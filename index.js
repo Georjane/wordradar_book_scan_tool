@@ -2,7 +2,7 @@ const fs = require('fs');
 const csv = require('csv-parser');
 const { count } = require('console');
 
-wordAndId = {}
+const wordAndId = {}
 // abandon: {
   // word: abandon,
   // word_id: 3444
@@ -97,9 +97,8 @@ fs.createReadStream('words.csv')
     return Math.max(...percentValuesArray);
   }
   
-  const wordsWithHighestPercentMatch = (hashOfWords, arrayOfWordIds) => {
+  const wordsWithHighestPercentMatch = (hashOfWords) => {
     let filteredUnfoundWords = {}
-    // console.log(arrayOfWordIds);
     for (const key in hashOfWords) {
       let subdata = {}
       let max = findMaxPercentageMatch(hashOfWords[key])
@@ -135,7 +134,6 @@ fs.createReadStream('words.csv')
           root_ids.forEach(root_id => {            
             findMeaningAndDescription(root_id, filteredUnfoundWords)
           });
-          // results()
         });
     }
   }
@@ -151,7 +149,8 @@ fs.createReadStream('words.csv')
         })
         .on('end', function () {
             console.log(filteredUnfoundWords);
-          console.log(arrRootIdMeaningDesc);
+            console.log(arrRootIdMeaningDesc);
+          
         });  
       }
 
@@ -159,10 +158,8 @@ fs.createReadStream('words.csv')
     let counter = 0;
             for (const word in filteredUnfoundWords) {
               filteredUnfoundWords[word]['root_id'] = root_ids[counter]
-              // filteredUnfoundWords[word]['meaning'] = meanings[counter]
               counter += 1
             }
-            // console.log(filteredUnfoundWords); 
   }
 
   function getKeyByValue(object, value) {
